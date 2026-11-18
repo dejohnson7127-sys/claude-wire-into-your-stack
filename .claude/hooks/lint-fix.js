@@ -24,8 +24,18 @@ process.stdin.on('end', () => {
   const rel = path.relative(projectDir, path.resolve(projectDir, filePath));
   if (rel.startsWith('..') || rel.includes('node_modules')) process.exit(0);
 
+  // Run ESLint's own script with node (not `npx`), so it works on Windows too,
+  // where npx is a .cmd file that execFileSync can't launch directly.
+  let eslintBin;
   try {
-    execFileSync('npx', ['--no-install', 'eslint', '--fix', rel], {
+    eslintBin = require.resolve('eslint/bin/eslint.js', { paths: [projectDir] });
+  } catch {
+    process.stderr.write('ESLint is not installed — run `npm install` to enable the lint hook.\n');
+    process.exit(0);
+  }
+
+  try {
+    execFileSync(process.execPath, [eslintBin, '--fix', rel], {
       cwd: projectDir,
       stdio: ['ignore', 'pipe', 'pipe'],
     });
