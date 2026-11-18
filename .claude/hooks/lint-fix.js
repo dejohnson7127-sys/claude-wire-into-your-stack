@@ -28,7 +28,8 @@ process.stdin.on('end', () => {
   // where npx is a .cmd file that execFileSync can't launch directly.
   let eslintBin;
   try {
-    eslintBin = require.resolve('eslint/bin/eslint.js', { paths: [projectDir] });
+    const pkg = require.resolve('eslint/package.json', { paths: [projectDir] });
+    eslintBin = path.join(path.dirname(pkg), 'bin', 'eslint.js');
   } catch {
     process.stderr.write('ESLint is not installed — run `npm install` to enable the lint hook.\n');
     process.exit(0);
